@@ -1,30 +1,34 @@
+const express = require("express");
 const {
-    createBooking,
-    checkAvailability,
-    getAllBookings,
-    getBookingsByUser,
-    cancelBooking,
+  createBooking,
+  getMyBookings,
+  getAllBookings,
+  checkInBooking,
+  checkOutBooking,
+  cancelBooking,
+  updatePaymentStatus,
+  deleteBooking
 } = require("../../controller/admin/booking.controller");
 
-const bookingRouter = require("express").Router();
+const {
+    isAuthenticated,
+    isAdmin,
+} = require("../../middleware/auth.middleware");
 
-// CREATE BOOKING
-bookingRouter.post("/create", createBooking);
+const bookingrouter = express.Router();
 
-// CHECK AVAILABILITY (use POST because we send dates)
-bookingRouter.post("/check-availability", checkAvailability);
+/* User Side */
+bookingrouter.post("/", createBooking);
+bookingrouter.get("/my", getMyBookings);
 
-// GET ALL BOOKINGS
-bookingRouter.get("/all", getAllBookings);
+/* Manager + Admin */
+bookingrouter.get("/all",  getAllBookings);
+bookingrouter.put("/check-in/:id",  checkInBooking);
+bookingrouter.put("/check-out/:id", checkOutBooking);
+bookingrouter.put("/cancel/:id",  cancelBooking);
 
-// GET BOOKINGS BY A SPECIFIC SHELTER
-// bookingRouter.get("/shelter/:shelterId", getBookingsByShelter);
+/* Admin Only */
+bookingrouter.put("/payment/:id",  updatePaymentStatus);
+bookingrouter.delete("/:id", deleteBooking);
 
-// GET BOOKINGS BY USER
-bookingRouter.get("/user/:userId", getBookingsByUser);
-
-// CANCEL BOOKING
-bookingRouter.patch("/cancel/:bookingId", cancelBooking);
-
-module.exports = bookingRouter;
-
+module.exports = bookingrouter;

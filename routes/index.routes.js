@@ -1,149 +1,112 @@
 const express = require("express");
+
+// routes
 const authRoutes = require("../routes/auth.routes");
 const adminRoutes = require("../routes/admin/index.routes");
-
-const {
-    getAllProducts,
-    getProductById,
-    getProductByfabric,
-} = require("../controller/public/product/product.controller");
-const {
-    getAllCategories,
-    getCategoryById,
-} = require("../controller/public/product/category.controller");
-
-
-const imageUploader = require("../utils/imageUploader.utils");
-
+const managerRoutes = require("../routes/manager/index.routes")
 const userRoutes = require("./user/index.routes");
 const paymentRoutes = require("./payment.routes");
+
+// models
+const Room = require("../model/Room.model");
+const Newsletter = require("../model/Newsletter.model");
+
+// utils
+const imageUploader = require("../utils/imageUploader.utils");
 const mailSender = require("../utils/mailSender.utils");
+
+// email teamples
 const bookVideoCallTemplate = require("../email/template/bookVideoCallTemplate");
 const bookVideoCallAdminTemplate = require("../email/template/bookVideoCallAdminTemplate");
-const Newsletter = require("../model/Newsletter.model");
 const contactEmailTemplate = require("../email/template/contactEmailTemplate");
-const {
-    getOffer,
-    getOfferOfProduct,
-} = require("../controller/public/product/offer.controller");
 const adminCustomRugNotificationTemplate = require("../email/template/adminCustomRugNotificationTemplate");
-
 
 const router = express.Router();
 
+// route define
 router.use("/auth", authRoutes);
 router.use("/admin", adminRoutes);
+router.use("/manager", managerRoutes)
 router.use("/user", userRoutes);
 router.use("/payment", paymentRoutes);
-// Public routes
-// Products
-router.get("/products", getAllProducts);
-router.get("/products/:id", getProductById);
-router.get("/products/:fabric/:id", getProductByfabric);
-// Categories
-router.get("/categories", getAllCategories);
-router.get("/categories/:id", getCategoryById);
-router.get("/offer", getOffer);
-router.get("/offer/:productId", getOfferOfProduct);
 
+const rooms = [
+  {
+    id: 1,
+    title: "Deluxe Garden View Room",
+    image: "/room1.jpg",
+    bed: "1 King Bed",
+    bathroom: "1 Modern Bathroom",
+    size: "150 sq.ft (14 sq.mt)",
+    capacity: "Max 2 Guests",
+    price: "₹4200.00",
+  },
+  {
+    id: 2,
+    title: "Executive Premium Room",
+    image: "/room2.jpg",
+    bed: "1 Queen Bed",
+    bathroom: "Luxury Bathroom",
+    size: "210 sq.ft (19 sq.mt)",
+    capacity: "Max 3 Guests",
+    price: "₹5200.00",
+  },
+  {
+    id: 3,
+    title: "Family Suite Room",
+    image: "/room3.jpg",
+    bed: "2 Queen Beds",
+    bathroom: "2 Bathrooms",
+    size: "320 sq.ft (29 sq.mt)",
+    capacity: "Max 5 Guests",
+    price: "₹6800.00",
+  },
+  {
+    id: 4,
+    title: "Royal Heritage Suite",
+    image: "/room4.jpg",
+    bed: "1 King Bed + Sofa",
+    bathroom: "Luxury Bath Tub",
+    size: "400 sq.ft (37 sq.mt)",
+    capacity: "Max 4 Guests",
+    price: "₹8500.00",
+  },
+];
 
-// router.post("/upload", async (req, res) => {
+// public room routes 
 
-//     console.log("req", req.files.files)
-//     try {
-//         const images = req.files?.files ?? null;
-//         const imageFileName = req.body.name;
+/* -------------------------------------------------------
+   PUBLIC — GET ALL ROOM
+-------------------------------------------------------- */
+router.get("/rooms", async (req, res)=> {
+    try {
+        // get all room from your database if room is created than get all room by find method all rooms store inside the room variable to pass in the json resonse from server side 
+        // const rooms = await Room.find();
+    
+        // her send the response data from server side in json format data change the response inside json i wnat send messagen and status 
+        res.json(rooms);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+} )
 
-//         if (!images) {
-//             return res
-//                 .status(400)
-//                 .json({ success: false, message: "Please upload file first" });
-//         }
+/* -------------------------------------------------------
+   PUBLIC — GET SINGLE ROOM
+-------------------------------------------------------- */
+router.get("/rooms/:_id", async (req, res) => {
+  try {
+    const room = await Room.findById(req.params._id);
+    if (!room) return res.status(404).json({ message: "Room not found" });
+    res.json({
+        status: 200,
+        message: "successfully get rooms detils",
+        data: room
+  });
 
-//         const imageList = Array.isArray(images) ? images : [images];
-
-//         for (const image of imageList) {
-//             if (image.size > 100 * 1024 * 1024) {
-//                 return res.status(400).json({
-//                     success: false,
-//                     message: "Image should not be larger than 100MB",
-//                 });
-//             }
-//         }
-
-//         const slugFIleName = imageFileName.trim().replace(/\s+/g, "-");
-//         const result = await imageUploader(images, slugFIleName); // now uploads to local folder
-//         return res.status(200).json({
-//             success: true,
-//             message: "Images uploaded successfully",
-//             data: result,
-//         });
-//     } catch (err) {
-//         console.error("Upload error:", err);
-//         return res.status(500).json({
-//             success: false,
-//             message: "Server error",
-//             error: err.message,
-//         });
-//     }
-// });
-
-
-// AWS S3 Photo Upload URL 
-// /api/v1/upload 
-// router.post("/upload", async (req, res) => {
-//     try {
-//         const images = req.files?.files;
-
-//         if (!images) {
-//             return res.status(400).json({
-//                 success: false,
-//                 message: "Please upload file first",
-//             });
-//         }
-
-//         const imageList = Array.isArray(images) ? images : [images];
-
-//         // File size check
-//         for (const image of imageList) {
-//             if (image.size > 100 * 1024 * 1024) {
-//                 return res.status(400).json({
-//                     success: false,
-//                     message: "Image should not be larger than 100MB",
-//                 });
-//             }
-//         }
-
-//         // Use first file's name for slug creation
-//         const imageFileName = Array.isArray(images) ? images[0].name : images.name;
-
-      
-
-//         const slugFileName = imageFileName
-//             .trim()
-//             .replace(/\s+/g, "-")
-//             .replace(/\.[^/.]+$/, ""); // REMOVE existing extension
-
-//         const result = await imageUploader(images, slugFileName);
-
-//         return res.status(200).json({
-//             success: true,
-//             message: "Images uploaded successfully",
-//             data: result,
-//         });
-
-//     } catch (err) {
-//         console.error("Upload error:", err);
-//         return res.status(500).json({
-//             success: false,
-//             message: "Server error",
-//             error: err.message,
-//         });
-//     }
-// });
-
-
-
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+})
 
 router.post("/upload", async (req, res) => {
     try {
@@ -195,7 +158,6 @@ router.post("/upload", async (req, res) => {
         });
     }
 });
-
 
 router.post("/bookVideoCall", async (req, res) => {
     const { email, body } = req.body;
@@ -252,7 +214,6 @@ router.post("/bookVideoCall", async (req, res) => {
     }
 });
 
-
 router.post("/newsletter", async (req, res) => {
     const { email } = req.body;
 
@@ -278,7 +239,6 @@ router.post("/newsletter", async (req, res) => {
         return res.error("Something went wrong. Please try again later.", 500);
     }
 });
-
 
 // POST /api/contact
 router.post("/contact", async (req, res) => {

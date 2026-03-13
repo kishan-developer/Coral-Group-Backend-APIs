@@ -1,41 +1,30 @@
 const express = require("express");
 const adminRouter = express.Router();
-const productRoutes = require("../../routes/admin/product.routes");
-const categoryRoutes = require("../../routes/admin/category.routes");
 const {
     isAuthenticated,
     isAdmin,
 } = require("../../middleware/auth.middleware");
-
 const userRouter = require("./user.routes");
-const { getOverview } = require("../../controller/admin/overview.controller");
-const orderRouter = require("./order.routes");
-
 const couponRouter = require("./coupon.routes");
 const adminOfferRouter = require("./offer.routes");
 
-// shelter
+// Hotel
 const bookingRouter = require("./booking.routes");
+const roomrouter = require("./room.routes");
 
-// Private Routes For Admin
+// Private Routes For Admin - For Hotel
 adminRouter.use(isAuthenticated, isAdmin);
 
-// shelter 
-// route - /api/v1/admin/booking/all
 adminRouter.use("/booking", bookingRouter);
 
-// Not Want  ot inlcude Fabric ->
-// adminRouter.use("/fabrics", fabricRouter);
+adminRouter.use("/room", roomrouter)
 
-// Private Routes For Admin
-// adminRouter.use(isAuthenticated, isAdmin);
-adminRouter.use("/product", productRoutes);
-adminRouter.use("/category", categoryRoutes);
 adminRouter.use("/user", userRouter);
-adminRouter.use("/orders", orderRouter);
+
 adminRouter.use("/coupon", couponRouter);
+
 adminRouter.use("/offer", adminOfferRouter);
-adminRouter.get("/overview", getOverview);
+
 adminRouter.get('/newsletters',async(req,res)=>{
     try {
         const emails = await NewsletterModel.find({});

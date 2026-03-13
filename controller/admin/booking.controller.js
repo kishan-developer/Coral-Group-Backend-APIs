@@ -1,259 +1,199 @@
-const Room = require("../../model/Room.model");  
-const User = require("../../model/User.model");
+const Booking = require("../../model/Booking.model");
+const Room = require("../../model/Room.model");
 
-
-// ----------------------
-// ROOM LISTING (Admin + User)
-// ----------------------
-const roomlisting = async (req, res) => {
-    try {
-        const { roomId } = req.body;
-
-        if (!roomId) {
-            return res.status(400).json({
-                success: false,
-                message: "Room ID is required"
-            });
-        }
-
-        const room = await Room.findById(roomId);
-        if (!room) {
-            return res.status(404).json({
-                success: false,
-                message: "Room not found"
-            });
-        }
-
-        res.json({
-            success: true,
-            data: room
-        });
-
-    } catch (error) {
-        console.log("Error in roomlisting:", error);
-        res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
-    }
-};
-
-
-
-// ----------------------
-// CREATE BOOKING
-// ----------------------
+/* -------------------------------------------------------
+    USER — CREATE BOOKING
+-------------------------------------------------------- */
 const createBooking = async (req, res) => {
-    try {
-        const { roomId, userId, startDate, endDate, amount, paymentId } = req.body;
+  try {
+    const { roomId, userId, checkIn, checkOut, guests, totalAmount } = req.body;
 
-        if (!roomId || !userId || !startDate || !endDate) {
-            return res.status(400).json({
-                success: false,
-                message: "Missing required fields"
-            });
-        }
+    // create new booking
+    const booking = await Booking.create({
+      roomId,
+      userId,
+      checkIn,
+      checkOut,
+      guests,
+      totalAmount,
+      paymentStatus: "pending",
+      status: "Booked",
+    });
 
-        // Validate room
-        const room = await room.findById(roomId);
-        if (!room) {
-            return res.status(404).json({
-                success: false,
-                message: "room not found"
-            });
-        }
+    // Mark room unavailable
+    await Room.findByIdAndUpdate(roomId, { isAvailable: false });
 
-        // Check date overlap
-        const isBooked = await Booking.findOne({
-            roomId,
-            $or: [
-                { startDate: { $lte: endDate }, endDate: { $gte: startDate } }
-            ]
-        });
-
-        if (isBooked) {
-            return res.status(400).json({
-                success: false,
-                message: "room is already booked for these dates"
-            });
-        }
-
-        // Create booking
-        const booking = await Booking.create({
-            roomId,
-            userId,
-            startDate,
-            endDate,
-            amount,
-            paymentId: paymentId || null,
-            status: paymentId ? "confirmed" : "pending"
-        });
-
-        res.status(201).json({
-            success: true,
-            message: "Booking created successfully",
-            data: booking
-        });
-
-    } catch (err) {
-        console.log("Error in createBooking:", err);
-        res.status(500).json({
-            success: false,
-            message: "Server Error"
-        });
-    }
+    // send the create response in backend api server
+    res.status(201).json({
+      message: "Booking Created Successfully",
+      booking,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 
+/* -------------------------------------------------------
+    USER — GET MY BOOKINGS
+-------------------------------------------------------- */
+const getMyBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ userId: req.user.userId })
+      .populate("roomId");
 
-// ----------------------
-// CHECK AVAILABILITY
-// ----------------------
-const checkAvailability = async (req, res) => {
-    try {
-        const { roomId, startDate, endDate } = req.body;
-
-        if (!roomId || !startDate || !endDate) {
-            return res.status(400).json({
-                available: false,
-                message: "Missing required fields"
-            });
-        }
-
-        const isBooked = await Booking.findOne({
-            roomId,
-            $or: [
-                { startDate: { $lte: endDate }, endDate: { $gte: startDate } }
-            ]
-        });
-
-        if (isBooked) {
-            return res.json({
-                available: false,
-                message: "Not available for these dates"
-            });
-        }
-
-        res.json({
-            available: true,
-            message: "room is available"
-        });
-
-    } catch (err) {
-        console.log("Error in checkAvailability:", err);
-        res.status(500).json({ success: false });
-    }
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 
-
-// ----------------------
-// GET ALL BOOKINGS (Admin)
-// ----------------------
+/* -------------------------------------------------------
+    MANAGER / ADMIN — GET ALL BOOKINGS
+-------------------------------------------------------- */
 const getAllBookings = async (req, res) => {
-    try {
-        const bookings = await Booking.find()
-            .populate("userId", "name email mobile")
-            .populate("roomId")
-            .sort({ createdAt: -1 });
+  try {
+    const bookings = await Booking.find()
+      .populate("roomId")
+      .populate("userId");
 
-        res.json({
-            success: true,
-            data: bookings
-        });
-
-    } catch (err) {
-        console.log("Error in getAllBookings:", err);
-        res.status(500).json({ success: false });
-    }
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 
+/* -------------------------------------------------------
+    MANAGER — CHECK-IN GUEST
+-------------------------------------------------------- */
+const checkInBooking = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
 
-// ----------------------
-// GET BOOKINGS BY room
-// ----------------------
-const getBookingsByroom = async (req, res) => {
-    try {
-        const { roomId } = req.params;
+    const booking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { status: "CheckedIn" },
+      { new: true }
+    );
 
-        const bookings = await Booking.find({ roomId })
-            .populate("userId")
-            .sort({ startDate: 1 });
+    // update room using room id and avilability if available than show other wise hide room not available 
+    await Room.findByIdAndUpdate(booking.roomId, { isAvailable: false });
 
-        res.json({
-            success: true,
-            data: bookings
-        });
-
-    } catch (err) {
-        console.log("Error in getBookingsByroom:", err);
-        res.status(500).json({ success: false });
-    }
+    res.json({
+      message: "Guest Checked-In Successfully",
+      booking,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 
+/* -------------------------------------------------------
+    MANAGER — CHECK-OUT GUEST
+-------------------------------------------------------- */
+const checkOutBooking = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
 
-// ----------------------
-// GET BOOKINGS BY USER
-// ----------------------
-const getBookingsByUser = async (req, res) => {
-    try {
-        const { userId } = req.params;
+    const booking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { status: "CheckedOut" },
+      { new: true }
+    );
 
-        const bookings = await Booking.find({ userId })
-            .populate("roomId");
+    // Room becomes available again
+    await Room.findByIdAndUpdate(booking.roomId, { isAvailable: true });
 
-        res.json({
-            success: true,
-            data: bookings
-        });
-
-    } catch (err) {
-        console.log("Error in getBookingsByUser:", err);
-        res.status(500).json({ success: false });
-    }
+    res.json({
+      message: "Guest Checked-Out Successfully",
+      booking,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 
-
-// ----------------------
-// CANCEL BOOKING
-// ----------------------
+/* -------------------------------------------------------
+    MANAGER — CANCEL BOOKING
+-------------------------------------------------------- */
 const cancelBooking = async (req, res) => {
-    try {
-        const { bookingId } = req.params;
+  try {
+    const bookingId = req.params.id;
 
-        const booking = await Booking.findById(bookingId);
-        if (!booking) {
-            return res.status(404).json({
-                success: false,
-                message: "Booking not found"
-            });
-        }
+    const booking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { status: "Cancelled" },
+      { new: true }
+    );
 
-        booking.status = "cancelled";
-        await booking.save();
+    // Room becomes available again
+    await Room.findByIdAndUpdate(booking.roomId, { isAvailable: true });
 
-        res.json({
-            success: true,
-            message: "Booking cancelled successfully"
-        });
-
-    } catch (err) {
-        console.log("Error in cancelBooking:", err);
-        res.status(500).json({ success: false });
-    }
+    res.json({
+      message: "Booking Cancelled Successfully",
+      booking,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 
+/* -------------------------------------------------------
+    ADMIN — UPDATE PAYMENT STATUS
+-------------------------------------------------------- */
+const updatePaymentStatus = async (req, res) => {
+  try {
+    const { paymentStatus } = req.body;
+    const bookingId = req.params.id;
 
-module.exports = {
-    roomlisting,
-    createBooking,
-    checkAvailability,
-    getAllBookings,
-    getBookingsByroom,
-    getBookingsByUser,
-    cancelBooking,
+    const booking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { paymentStatus },
+      { new: true }
+    );
+
+    res.json({
+      message: "Payment Status Updated",
+      booking,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
+
+
+/* -------------------------------------------------------
+    ADMIN — DELETE BOOKING
+-------------------------------------------------------- */
+const deleteBooking = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+
+    const booking = await Booking.findById(bookingId);
+
+    // Make room available again
+    await Room.findByIdAndUpdate(booking.roomId, { isAvailable: true });
+
+    await Booking.findByIdAndDelete(bookingId);
+
+    res.json({ message: "Booking Deleted Successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports= {
+  createBooking,
+  getMyBookings,
+  getAllBookings,
+  checkInBooking,
+  checkOutBooking,
+  cancelBooking,
+  updatePaymentStatus,
+  deleteBooking
+}
