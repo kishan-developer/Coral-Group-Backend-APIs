@@ -11,6 +11,7 @@ const getCurrentDateTime = require("../utils/getCurrentDateTime");
 const forgotPasswordTemplate = require("../email/template/fogotPasswordTemplate");
 const jwt = require("jsonwebtoken");
 const passwordChangeSuccessTemplate = require("../email/template/passwordChangeSuccessTemplate");
+const crypto = require("crypto");
 require("dotenv").config();
 
 
@@ -106,7 +107,7 @@ exports.registerUser = asyncHandler(async (req, res) => {
 
     if (!otpRecord) {
         return res.error(
-            "OTP recondrd not fou (expired or never generated)",
+            "OTP record not found (expired or never generated)",
             404
         );
     }
@@ -152,7 +153,7 @@ exports.login = asyncHandler(async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-        return res.error("User Dose Not Exit!");
+        return res.error("User does not exist!", 404);
     }
 
     // Check Is User Password Are Same Or Not ?
@@ -161,7 +162,7 @@ exports.login = asyncHandler(async (req, res) => {
     const isPasswordMatch = await bcrypt.compare(password, user.password);
 
     if (!isPasswordMatch) {
-        return res.error("Password dose not match", 403);
+        return res.error("Password does not match", 403);
     }
 
     // Generate Token For User
@@ -251,7 +252,7 @@ exports.changePassword = asyncHandler(async (req, res) => {
 
     if (!isPasswordMatch) {
         return res.error(
-            "Your Old Passoword And New Password Dose Not Match.",
+            "Your old password and new password does not match.",
             403
         );
     }
@@ -293,7 +294,7 @@ exports.forgotPasswordToken = asyncHandler(async (req, res) => {
 
     // if user exit then send a token to user on email
     if (!userDetails) {
-        return res.error("User Dose Not Exit!", 403);
+        return res.error("User does not exist!", 404);
     }
 
     // set expiry time for reset token
@@ -332,7 +333,7 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
 
     // check is password and confirm password are same or not ?
     if (password !== confirmPassword) {
-        return res.error("Password And Confirm Password Dose Not Match", 403);
+        return res.error("Password and confirm password does not match", 403);
     }
     // find user by token
     const userDetails = await User.findOne({
@@ -340,7 +341,7 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
     });
 
     if (!userDetails) {
-        return res.error("User Not Found!. Please Try Again", 403);
+        return res.error("User not found! Please try again", 404);
     }
     const isPreviousPassword = await bcrypt.compare(
         password,
@@ -429,7 +430,7 @@ exports.regenerateToken = asyncHandler(async (req, res) => {
         }
 
         if (incomingRefreshToken !== user?.refreshToken) {
-            return res.error("Refresh token is expired or used...", 400);
+            return res.error("Refresh token is expired or used...", 401);
         }
 
         const { token, refreshToken: newRefreshToken } =
@@ -459,7 +460,7 @@ exports.getUserDetails = asyncHandler(async (req, res) => {
     );
 
     if (!userDetails) {
-        return res.error("Unauthorised Acces User Not Found", 401);
+        return res.error("Unauthorized access. User not found", 401);
     }
     return res.success("User Fetched Successfully..", userDetails);
 });

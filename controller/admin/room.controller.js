@@ -6,12 +6,9 @@ const Room = require("../../model/Room.model");
 const createRoom = async (req, res) => {
   try {
     const room = await Room.create(req.body);
-    res.status(201).json({
-      message: "Room created successfully",
-      room,
-    });
+    return res.success("Room created successfully", room);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -24,14 +21,11 @@ const updateRoom = async (req, res) => {
       new: true,
     });
 
-    if (!room) return res.status(404).json({ message: "Room not found" });
+    if (!room) return res.error("Room not found", 404);
 
-    res.json({
-      message: "Room updated successfully",
-      room,
-    });
+    return res.success("Room updated successfully", room);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -41,11 +35,11 @@ const updateRoom = async (req, res) => {
 const deleteRoom = async (req, res) => {
   try {
     const room = await Room.findByIdAndDelete(req.params.id);
-    if (!room) return res.status(404).json({ message: "Room not found" });
+    if (!room) return res.error("Room not found", 404);
 
-    res.json({ message: "Room deleted successfully" });
+    return res.success("Room deleted successfully");
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -54,13 +48,10 @@ const deleteRoom = async (req, res) => {
 -------------------------------------------------------- */
 const getAllRooms = async (req, res) => {
   try {
-    // get all room from your database if room is created than get all room by find method all rooms store inside the room variable to pass in the json resonse from server side 
     const rooms = await Room.find();
-
-    // her send the response data from server side in json format data change the response inside json i wnat send messagen and status 
-    res.json(rooms);
+    return res.success("Rooms fetched successfully", rooms);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -71,11 +62,11 @@ const getRoomById = async (req, res) => {
   try {
     const room = await Room.findById(req.params.id);
 
-    if (!room) return res.status(404).json({ message: "Room not found" });
+    if (!room) return res.error("Room not found", 404);
 
-    res.json(room);
+    return res.success("Room details fetched", room);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -90,14 +81,11 @@ const updateAvailability = async (req, res) => {
       { new: true }
     );
 
-    if (!room) return res.status(404).json({ message: "Room not found" });
+    if (!room) return res.error("Room not found", 404);
 
-    res.json({
-      message: "Room availability updated",
-      room,
-    });
+    return res.success("Room availability updated", room);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 

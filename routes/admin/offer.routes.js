@@ -1,30 +1,23 @@
-// const express = require("express");
-// const {
-//     createOffer,
-//     updateOffer,
-//     adminGetOffer,
-// } = require("../../controller/admin/offer.controller");
-
-// const adminOfferRouter = express.Router();
-// adminOfferRouter.post("/create", createOffer);
-// adminOfferRouter.put("/update", updateOffer);
-// adminOfferRouter.get("/", adminGetOffer);
-
-// module.exports = adminOfferRouter;
-
-
 const express = require("express");
+const adminOfferRouter = express.Router();
 const {
-    createOffer,
-    updateOffer,
-    adminGetOffer,
-    deleteOffer,
+  createOffer,
+  updateOffer,
+  deleteOffer,
+  adminGetOffer,
 } = require("../../controller/admin/offer.controller");
 
-const adminOfferRouter = express.Router();
+
+// Create Offer
 adminOfferRouter.post("/create", createOffer);
-adminOfferRouter.put("/update/:id", updateOffer);
-adminOfferRouter.delete("/delete/:id", deleteOffer);
+
+// Get All Offers
 adminOfferRouter.get("/", adminGetOffer);
+
+// Update Offer
+adminOfferRouter.put("/:id", updateOffer);
+
+// Delete Offer
+adminOfferRouter.delete("/:id", deleteOffer);
 
 module.exports = adminOfferRouter;

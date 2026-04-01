@@ -1,12 +1,6 @@
 const express = require("express");
 const managerRoutes = express.Router();
-const {
-    isAuthenticated,
-    isAdmin,
-} = require("../../middleware/auth.middleware");
-// const userRouter = require("./../user/in");
-// const couponRouter = require("./coupon.routes");
-// const adminOfferRouter = require("./offer.routes");
+const Newsletter = require("../../model/Newsletter.model");
 
 // Hotel
 // const bookingRouter = require("./booking.routes");
@@ -25,14 +19,12 @@ const {
 
 // managerRoutes.use("/offer", adminOfferRouter);
 
-managerRoutes.get('/newsletters',async(req,res)=>{
+managerRoutes.get('/newsletters', async(req, res)=>{
     try {
-        const emails = await NewsletterModel.find({});
-        return res.status(200).json(emails)
+        const emails = await Newsletter.find({});
+        return res.success("Newsletters fetched successfully", emails);
     } catch (error) {
-       return  res.status(500).json({
-            message:"Error wile fetching  emails"
-        })
+       return res.error("Error while fetching emails", 500);
     }
 })
 

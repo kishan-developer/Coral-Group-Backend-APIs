@@ -6,6 +6,7 @@ const adminRoutes = require("../routes/admin/index.routes");
 const managerRoutes = require("../routes/manager/index.routes")
 const userRoutes = require("./user/index.routes");
 const paymentRoutes = require("./payment.routes");
+const bookingRoutes = require("./booking.routes");
 
 // models
 const Room = require("../model/Room.model");
@@ -29,6 +30,7 @@ router.use("/admin", adminRoutes);
 router.use("/manager", managerRoutes)
 router.use("/user", userRoutes);
 router.use("/payment", paymentRoutes);
+router.use("/bookings", bookingRoutes);
 
 const rooms = [
   {
@@ -80,13 +82,11 @@ const rooms = [
 -------------------------------------------------------- */
 router.get("/rooms", async (req, res)=> {
     try {
-        // get all room from your database if room is created than get all room by find method all rooms store inside the room variable to pass in the json resonse from server side 
-        // const rooms = await Room.find();
+        const roomsData = await Room.find();
     
-        // her send the response data from server side in json format data change the response inside json i wnat send messagen and status 
-        res.json(rooms);
+        return res.success("Rooms fetched successfully", roomsData);
       } catch (error) {
-        res.status(500).json({ error: error.message });
+        return res.error(error.message, 500);
       }
 } )
 
@@ -96,15 +96,11 @@ router.get("/rooms", async (req, res)=> {
 router.get("/rooms/:_id", async (req, res) => {
   try {
     const room = await Room.findById(req.params._id);
-    if (!room) return res.status(404).json({ message: "Room not found" });
-    res.json({
-        status: 200,
-        message: "successfully get rooms detils",
-        data: room
-  });
-
+    if (!room) return res.error("Room not found", 404);
+    
+    return res.success("Successfully get rooms details", room);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 })
 
@@ -143,19 +139,10 @@ router.post("/upload", async (req, res) => {
         const uploadedUrls = await imageUploader(imageList, slugFileName);
 
         // uploadedUrls is now an array of URLs like [url1, url2]
-        return res.status(200).json({
-            success: true,
-            message: "Images uploaded successfully",
-            data: uploadedUrls,
-        });
-
+        return res.success("Images uploaded successfully", uploadedUrls);
     } catch (err) {
         console.error("Upload error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: err.message,
-        });
+        return res.error(err.message, 500);
     }
 });
 
@@ -193,7 +180,7 @@ router.post("/bookVideoCall", async (req, res) => {
         ); // send to user
 
         const adminMailResponse = await mailSender(
-            "carpetshimalaya@gmail.com",
+            process.env.ADMIN_EMAIL || "carpetshimalaya@gmail.com",
             "New Video Call Book",
             admintemplate
         ); // send to Admin
@@ -260,7 +247,7 @@ router.post("/contact", async (req, res) => {
 
         // Send mail to admin
         await mailSender(
-            "carpetshimalaya@gmail.com",
+            process.env.ADMIN_EMAIL || "carpetshimalaya@gmail.com",
             `Contact Us: ${subject}`,
             htmlBody
         );
@@ -335,7 +322,7 @@ router.post("/custom-rug-request", async (req, res) => {
         });
 
         await mailSender(
-            "carpetshimalaya@gmail.com", // Admin's email address
+            process.env.ADMIN_EMAIL || "carpetshimalaya@gmail.com",
             `New Custom Rug Request from ${name}`,
             adminHtmlBody
         );

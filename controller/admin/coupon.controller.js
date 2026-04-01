@@ -9,9 +9,9 @@ const createCoupon = async (req, res) => {
         return res.error("Something went wrong,Please check all details");
     }
     try {
-        // Find Dose Same Coupon ALready Exit Or Not ?
-        const alreadyExit = await Coupon.findOne({ code: code?.toLowerCase() });
-        if (alreadyExit) return res.error("Coupon code already exit", 400);
+        // Find Does Same Coupon ALready Exist Or Not ?
+        const alreadyExist = await Coupon.findOne({ code: code?.toLowerCase() });
+        if (alreadyExist) return res.error("Coupon code already exist", 400);
         const coupon = await Coupon.create({
             code,
             discount,

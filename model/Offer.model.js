@@ -1,46 +1,95 @@
 const mongoose = require("mongoose");
 
-const offerSchema = new mongoose.Schema({
-    discount: {
-        type: Number,
-        required: true,
-        min: 0,
-        max: 100,
+const offerSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
     },
-    maxAge: {
-        type: Number, // in hours
-        required: true,
-        min: 1,
+
+    description: {
+      type: String,
+      trim: true,
     },
+
+    image: {
+      type: String, // banner image
+    },
+
+    discountType: {
+      type: String,
+      enum: ["percentage", "flat"],
+      required: true,
+    },
+
+    discountValue: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
     maxUsageLimit: {
-        type: Number,
-        required: true,
-        min: 1,
+      type: Number,
+      required: true,
+      min: 1,
     },
+
     usageCount: {
-        type: Number,
-        default: 0,
+      type: Number,
+      default: 0,
     },
+
+    validFrom: {
+      type: Date,
+      required: true,
+      default: Date.now,
+    },
+
+    validTill: {
+      type: Date,
+      required: true,
+    },
+
     status: {
-        type: Boolean,
-        require: true,
+      type: String,
+      enum: ["active", "inactive", "expired"],
+      default: "active",
     },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-});
+  },
+  { timestamps: true }
+);
 
-// Add a virtual field to check if the coupon is expired
+
+//  Virtual Field → Check Expiry
 offerSchema.virtual("isExpired").get(function () {
-    const now = new Date();
-    const ageLimit = this.maxAge * 60 * 60 * 1000; // convert hours to ms
-    return now - this.createdAt > ageLimit;
+  const now = new Date();
+  return now > this.validTill;
 });
 
-// Optional: include virtuals when converting to JSON
+
+//  Virtual Field → Check Usage Limit
+offerSchema.virtual("isUsageLimitReached").get(function () {
+  return this.usageCount >= this.maxUsageLimit;
+});
+
+
+//  Auto Expire Middleware
+offerSchema.pre("save", function (next) {
+  const now = new Date();
+
+  if (now > this.validTill) {
+    this.status = "expired";
+  }
+
+  next();
+});
+
+
+//  Include virtual fields in JSON
 offerSchema.set("toJSON", { virtuals: true });
 offerSchema.set("toObject", { virtuals: true });
+
 
 const Offer = mongoose.model("Offer", offerSchema);
 

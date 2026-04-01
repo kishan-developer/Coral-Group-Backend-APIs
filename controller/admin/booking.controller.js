@@ -24,12 +24,9 @@ const createBooking = async (req, res) => {
     await Room.findByIdAndUpdate(roomId, { isAvailable: false });
 
     // send the create response in backend api server
-    res.status(201).json({
-      message: "Booking Created Successfully",
-      booking,
-    });
+    return res.success("Booking Created Successfully", booking);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -39,12 +36,12 @@ const createBooking = async (req, res) => {
 -------------------------------------------------------- */
 const getMyBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({ userId: req.user.userId })
+    const bookings = await Booking.find({ userId: req.user._id })
       .populate("roomId");
 
-    res.json(bookings);
+    return res.success("Bookings fetched successfully", bookings);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -58,9 +55,9 @@ const getAllBookings = async (req, res) => {
       .populate("roomId")
       .populate("userId");
 
-    res.json(bookings);
+    return res.success("All bookings fetched successfully", bookings);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -81,12 +78,9 @@ const checkInBooking = async (req, res) => {
     // update room using room id and avilability if available than show other wise hide room not available 
     await Room.findByIdAndUpdate(booking.roomId, { isAvailable: false });
 
-    res.json({
-      message: "Guest Checked-In Successfully",
-      booking,
-    });
+    return res.success("Guest Checked-In Successfully", booking);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -107,12 +101,9 @@ const checkOutBooking = async (req, res) => {
     // Room becomes available again
     await Room.findByIdAndUpdate(booking.roomId, { isAvailable: true });
 
-    res.json({
-      message: "Guest Checked-Out Successfully",
-      booking,
-    });
+    return res.success("Guest Checked-Out Successfully", booking);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -133,12 +124,9 @@ const cancelBooking = async (req, res) => {
     // Room becomes available again
     await Room.findByIdAndUpdate(booking.roomId, { isAvailable: true });
 
-    res.json({
-      message: "Booking Cancelled Successfully",
-      booking,
-    });
+    return res.success("Booking Cancelled Successfully", booking);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -157,12 +145,9 @@ const updatePaymentStatus = async (req, res) => {
       { new: true }
     );
 
-    res.json({
-      message: "Payment Status Updated",
-      booking,
-    });
+    return res.success("Payment Status Updated", booking);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 
@@ -181,9 +166,9 @@ const deleteBooking = async (req, res) => {
 
     await Booking.findByIdAndDelete(bookingId);
 
-    res.json({ message: "Booking Deleted Successfully" });
+    return res.success("Booking Deleted Successfully");
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.error(error.message, 500);
   }
 };
 

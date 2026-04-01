@@ -22,10 +22,9 @@ connectDB();
 const app = express();
 
 /* -------------------- CORS FIX (Express 5 Compatible) -------------------- */
-
 const allowedOrigins = [
   "http://localhost:3000",
-  
+  "http://localhost:5173",
 ];
 
 app.use(
@@ -57,23 +56,17 @@ app.use(
 );
 
 // Security headers
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
 
 // File upload
-// app.use(
-//   fileUpload({
-//     useTempFiles: true,
-//     tempFileDir: "/tmp",
-//   })
-// );
-
-// app.use(fileUpload({
-//     useTempFiles: true,
-//     tempFileDir: "/tmp/",   // important for Linux servers
-//     limits: { fileSize: 100 * 1024 * 1024 }
-// }));
-
-
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/",
+  })
+);
 
 // Custom response handler
 app.use(sendCustomResponse);
@@ -109,7 +102,7 @@ app.get("/users", (req, res) => {
 })
 
 // Serve static files
-app.use("/images/products", express.static("/root/uploads/image/products"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // 404 handler
 app.use(notFound);

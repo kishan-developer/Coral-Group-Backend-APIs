@@ -2,12 +2,22 @@
 // Upload Image
 const uploadImage = (req, res) => {
   const productName = req.body.name || 'unknown';
-  const safeName = productName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+  const images = req.files?.files;
 
+  if (!images) {
+      return res.status(400).json({
+          success: false,
+          message: "Please upload at least one image",
+      });
+  }
 
-  const fileUrls = req.files.map(file => ({
-    filename: file.filename,
-    path: `/uploads/products/${safeName}/${file.filename}`  // product images url 
+  const imageList = Array.isArray(images) ? images : [images];
+  
+  // This controller seems to be a placeholder or for local uploads.
+  // Standardized on returning local-style paths for now.
+  const fileUrls = imageList.map(file => ({
+    filename: file.name,
+    path: `/uploads/${file.name}`
   }));
 
 
