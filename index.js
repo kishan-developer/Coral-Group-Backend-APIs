@@ -24,7 +24,7 @@ const app = express();
 /* -------------------- CORS FIX (Express 5 Compatible) -------------------- */
 const allowedOrigins = [
   "http://localhost:3000",
-  "http://localhost:5173",
+  "http://localhost:3001",
 ];
 
 app.use(
@@ -40,8 +40,7 @@ app.use(
   })
 );
 
-// Preflight Request Fix (Express 5 requires '(.*)' instead of '*')
-// app.options("(.*)", cors());
+// Preflight Request is handled by the cors() middleware above.
 
 /* -------------------- Other Middlewares -------------------- */
 
@@ -76,30 +75,9 @@ app.use("/api/v1", router);
 
 // Default route
 app.get("/", (req, res) => {
-  res.send("Sands Of Kashi APIs Live ");
+  res.send("Coral Group APIs Live");
 });
 
-// Dymmy Users data 
-
-app.get("/users", (req, res) => {
-  res.json([
-    {
-    "name":"User 1",
-    "role": "FrontEnd Developer"
-  },{
-    "name":"User 2",
-    "role": "BackEnd Developer"
-  },
-  {
-    "name":"User 3",
-    "role": "Site Incharge"
-  },
-  {
-    "name":"User 3",
-    "role": "Social Media Manager"
-  }
-  ])
-})
 
 // Serve static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

@@ -3,48 +3,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-const cartSchema = new mongoose.Schema({
-    items: [
-        {
-            product: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Product",
-                required: true,
-            },
-            quantity: {
-                type: Number,
-                required: true,
-                default: 1,
-            },
-            finalPrice: {
-                type: Number,
-                required: true,
-                default: 0,
-            },
-            addons: {
-                withFallPico: {
-                    type: Boolean,
-                    default: false,
-                },
-                withTassels: {
-                    type: Boolean,
-                    default: false,
-                },
-            },
-            totalPrice: {
-                type: Number,
-                required: true,
-                default: 0,
-            },
-        },
-    ],
-    totalPrice: {
-        type: Number,
-        required: true,
-        default: 0,
-    },
-});
-
 const userSchema = new mongoose.Schema(
     {
         avatar: {
@@ -60,9 +18,6 @@ const userSchema = new mongoose.Schema(
             required: true,
             lowercase: true,
         },
-        dob: {
-            type: String,
-        },
         email: {
             type: String,
             required: true,
@@ -74,10 +29,6 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: [true, "Phone number is required"],
             trim: true,
-            match: [
-                /^[1-9][0-9]{9}$/,
-                "Please enter a valid 10-digit phone number that does not start with 0",
-            ],
         },
         password: {
             type: String,
@@ -86,39 +37,31 @@ const userSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ["user", "admin"],
+            enum: ["user", "admin", "manager", "team", "super_admin"],
             default: "user",
         },
-        shippingAddress: [
+        designation: {
+            type: String, // e.g., "Sales Head", "Marketing Executive"
+        },
+        department: {
+            type: String, // e.g., "Real Estate", "Administration"
+        },
+        assignedVerticals: [
             {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "Address",
-                required: true,
+                ref: "Vertical",
             },
         ],
-        defaultAddress: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Address",
-        },
-        cart: {
-            type: cartSchema,
-            default: () => ({}),
-        },
-        wishList: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Product",
-                required: true,
-            },
-        ],
-        gender: {
-            type: String,
-            enum: ['male', 'female'],
-            lowercase: true
-        },
         isAdmin: {
             type: Boolean,
             default: false,
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+        lastLogin: {
+            type: Date,
         },
         forgotPasswordToken: {
             value: { type: String },
@@ -126,6 +69,17 @@ const userSchema = new mongoose.Schema(
         },
         refreshToken: {
             type: String,
+        },
+        // Sales team specific fields
+        targets: {
+            monthly: { type: Number, default: 0 },
+            quarterly: { type: Number, default: 0 },
+            yearly: { type: Number, default: 0 },
+        },
+        performance: {
+            leadsAssigned: { type: Number, default: 0 },
+            leadsConverted: { type: Number, default: 0 },
+            conversionRate: { type: Number, default: 0 },
         },
     },
     { timestamps: true }
@@ -138,17 +92,22 @@ userSchema.pre("save", async function (next) {
     this.password = await bcrypt.hash(this.password, 10);
 });
 
+userSchema.methods.comparePassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
+};
+
 userSchema.methods.generateToken = function () {
     return jwt.sign(
         {
             _id: this._id,
+            role: this.role,
         },
         process.env.JWT_SECRET,
         { expiresIn: "2d" }
     );
 };
 
-userSchema.methods.generateRefreshToken = function name() {
+userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this._id,
@@ -160,6 +119,7 @@ userSchema.methods.generateRefreshToken = function name() {
         { expiresIn: "7d" }
     );
 };
+
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
