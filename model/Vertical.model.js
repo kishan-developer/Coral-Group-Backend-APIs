@@ -28,11 +28,6 @@ const verticalSchema = new mongoose.Schema(
             type: String,
             enum: ["Residential", "Commercial", "Industrial"],
         },
-        status: {
-            type: String,
-            enum: ["active", "inactive"],
-            default: "active",
-        },
         isActive: {
             type: Boolean,
             default: true,

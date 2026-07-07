@@ -6,7 +6,6 @@ const helmet = require("helmet");
 const compression = require("compression");
 const path = require("path");
 const dotenv = require("dotenv");
-const ratelimit = require("./middleware/rateLimit.middleware");
 const notFound = require("./middleware/notFound.middleware");
 const sendCustomResponse = require("./middleware/customResponse.middleware");
 const connectDB = require("./config/connectDb");
@@ -81,6 +80,9 @@ app.get("/", (req, res) => {
 
 // Serve static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/brochure", express.static(path.join(__dirname, "BROCHURE")));
+app.use("/logo", express.static(path.join(__dirname, "logo")));
+app.use("/image", express.static(path.join(__dirname, "image")));
 
 // 404 handler
 app.use(notFound);
@@ -90,7 +92,7 @@ app.use(globalErrorHandler);
 
 /* -------------------- Server Start -------------------- */
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 2000;
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

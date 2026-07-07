@@ -39,7 +39,7 @@ const brochureRequestSchema = new mongoose.Schema(
     brochureType: {
       type: String,
       required: true,
-      enum: ["coral-skyline", "coral-studio", "coral-garden"],
+      enum: ["coral-skyline", "coral-studio", "coral-garden", "brochure-access"],
     },
     brochureTitle: {
       type: String,

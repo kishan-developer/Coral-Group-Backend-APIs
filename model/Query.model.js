@@ -17,12 +17,10 @@ const querySchema = new mongoose.Schema(
             required: true,
         },
         propertyInterest: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Project",
+            type: String,
         },
         verticalInterest: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Vertical",
+            type: String,
         },
         message: {
             type: String,
@@ -38,7 +36,7 @@ const querySchema = new mongoose.Schema(
         },
         source: {
             type: String,
-            enum: ["Website", "Referral", "Advertisement", "Social Media", "Walk-in"],
+            enum: ["Website", "Referral", "Advertisement", "Social Media", "Walk-in", "Home Page"],
             default: "Website",
         },
         stage: {

@@ -13,15 +13,12 @@ const { protect, authorize } = require("../middleware/auth.middleware");
 
 const router = express.Router();
 
-// Public route for submitting queries
+// Public routes
 router.post("/", submitQuery);
+router.get("/", getQueries);
 
 // All other routes require authentication
 router.use(protect);
-
-// @route   GET /api/v1/queries
-// @access  Private (Admin/Manager/Superadmin)
-router.get("/", authorize("admin", "manager", "super_admin"), getQueries);
 
 // @route   GET /api/v1/queries/stats
 // @access  Private (Admin/Manager/Superadmin)

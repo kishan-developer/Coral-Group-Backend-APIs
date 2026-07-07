@@ -26,8 +26,10 @@ const getProjects = asyncHandler(async (req, res) => {
 const getProjectBySlug = asyncHandler(async (req, res) => {
     const project = await Project.findOne({ slug: req.params.slug }).populate("vertical");
     if (!project) {
-        res.status(404);
-        throw new Error("Project not found");
+        return res.status(404).json({
+            success: false,
+            message: "Project not found"
+        });
     }
     res.status(200).json({
         success: true,
@@ -54,8 +56,10 @@ const updateProject = asyncHandler(async (req, res) => {
     let project = await Project.findById(req.params.id);
 
     if (!project) {
-        res.status(404);
-        throw new Error("Project not found");
+        return res.status(404).json({
+            success: false,
+            message: "Project not found"
+        });
     }
 
     project = await Project.findByIdAndUpdate(req.params.id, req.body, {
@@ -76,8 +80,10 @@ const deleteProject = asyncHandler(async (req, res) => {
     const project = await Project.findById(req.params.id);
 
     if (!project) {
-        res.status(404);
-        throw new Error("Project not found");
+        return res.status(404).json({
+            success: false,
+            message: "Project not found"
+        });
     }
 
     await project.deleteOne();

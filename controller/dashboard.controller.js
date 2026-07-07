@@ -55,14 +55,19 @@ exports.getDashboardStats = asyncHandler(async (req, res) => {
     const conversionRate = totalLeads > 0 ? ((closedLeads / totalLeads) * 100).toFixed(1) : 0;
 
     // Calculate total revenue (sum of confirmed lead values)
-    const confirmedLeads = await Query.find({ status: "Confirmed", value: { $exists: true } });
+    const confirmedLeads = await Query.find({ status: "Confirmed", value: { $exists: true, $ne: null } });
     const totalRevenue = confirmedLeads.reduce((sum, lead) => {
+        if (!lead.value) return sum;
+        
         // Parse value like "₹12.5 Cr" to number
-        const valueStr = lead.value.replace(/[₹, Cr L]/g, '').trim();
+        const valueStr = String(lead.value).replace(/[₹,]/g, '').trim();
         const value = parseFloat(valueStr);
-        if (lead.value.includes('Cr')) {
+        
+        if (isNaN(value)) return sum;
+        
+        if (lead.value.toLowerCase().includes('cr')) {
             return sum + (value * 10000000);
-        } else if (lead.value.includes('L')) {
+        } else if (lead.value.toLowerCase().includes('l')) {
             return sum + (value * 100000);
         }
         return sum + value;

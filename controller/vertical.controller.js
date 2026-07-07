@@ -5,7 +5,7 @@ const Vertical = require("../model/Vertical.model");
 // @route   GET /api/v1/verticals
 // @access  Public
 const getVerticals = asyncHandler(async (req, res) => {
-    const verticals = await Vertical.find({ status: "active" });
+    const verticals = await Vertical.find({ isActive: true });
     res.status(200).json({
         success: true,
         data: verticals,
@@ -18,8 +18,10 @@ const getVerticals = asyncHandler(async (req, res) => {
 const getVerticalBySlug = asyncHandler(async (req, res) => {
     const vertical = await Vertical.findOne({ slug: req.params.slug });
     if (!vertical) {
-        res.status(404);
-        throw new Error("Vertical not found");
+        return res.status(404).json({
+            success: false,
+            message: "Vertical not found"
+        });
     }
     res.status(200).json({
         success: true,
@@ -35,8 +37,10 @@ const createVertical = asyncHandler(async (req, res) => {
     
     const verticalExists = await Vertical.findOne({ slug });
     if (verticalExists) {
-        res.status(400);
-        throw new Error("Vertical with this slug already exists");
+        return res.status(400).json({
+            success: false,
+            message: "Vertical with this slug already exists"
+        });
     }
 
     const vertical = await Vertical.create({
@@ -61,8 +65,10 @@ const updateVertical = asyncHandler(async (req, res) => {
     const vertical = await Vertical.findById(req.params.id);
 
     if (!vertical) {
-        res.status(404);
-        throw new Error("Vertical not found");
+        return res.status(404).json({
+            success: false,
+            message: "Vertical not found"
+        });
     }
 
     const updatedVertical = await Vertical.findByIdAndUpdate(
@@ -84,8 +90,10 @@ const deleteVertical = asyncHandler(async (req, res) => {
     const vertical = await Vertical.findById(req.params.id);
 
     if (!vertical) {
-        res.status(404);
-        throw new Error("Vertical not found");
+        return res.status(404).json({
+            success: false,
+            message: "Vertical not found"
+        });
     }
 
     await vertical.deleteOne();

@@ -14,7 +14,7 @@ router.route("/")
     .get(getProjects)
     .post(protect, authorize("admin", "manager", "super_admin"), createProject);
 
-router.route("/:slug")
+router.route("/slug/:slug")
     .get(getProjectBySlug);
 
 router.route("/:id")

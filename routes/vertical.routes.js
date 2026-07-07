@@ -14,7 +14,7 @@ router.route("/")
     .get(getVerticals)
     .post(protect, authorize("admin", "super_admin"), createVertical);
 
-router.route("/:slug")
+router.route("/slug/:slug")
     .get(getVerticalBySlug);
 
 router.route("/:id")

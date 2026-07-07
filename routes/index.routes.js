@@ -8,6 +8,7 @@ const queryRoutes = require("./query.routes");
 const userRoutes = require("./user.routes");
 const dashboardRoutes = require("./dashboard.routes");
 const brochureRoutes = require("./brochure.routes");
+const careersRoutes = require("./careers.routes");
 
 const router = express.Router();
 
@@ -28,5 +29,6 @@ router.use("/queries", queryRoutes);
 router.use("/users", userRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/brochure", brochureRoutes);
+router.use("/careers", careersRoutes);
 
 module.exports = router;
