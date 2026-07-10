@@ -24,6 +24,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
+  "https://coral-group.cloud",
 ];
 
 app.use(
@@ -66,8 +67,14 @@ app.use(
   })
 );
 
-// Custom response handler
-app.use(sendCustomResponse);
+// Serve static files (must be before custom response and API routes)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/brochure", express.static(path.join(__dirname, "BROCHURE")));
+app.use("/logo", express.static(path.join(__dirname, "logo")));
+app.use("/image", express.static(path.join(__dirname, "image")));
+
+// Custom response handler (only for API routes)
+app.use("/api/v1", sendCustomResponse);
 
 // API routes
 app.use("/api/v1", router);
@@ -76,13 +83,6 @@ app.use("/api/v1", router);
 app.get("/", (req, res) => {
   res.send("Coral Group APIs Live");
 });
-
-
-// Serve static files
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/brochure", express.static(path.join(__dirname, "BROCHURE")));
-app.use("/logo", express.static(path.join(__dirname, "logo")));
-app.use("/image", express.static(path.join(__dirname, "image")));
 
 // 404 handler
 app.use(notFound);

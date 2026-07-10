@@ -157,7 +157,7 @@ const getAdminEmailTemplate = (variables) => {
                 </td>
                 <td align="right">
                   <div style="background:linear-gradient(135deg,#94cb3d 0%,#7ab532 100%);color:#000000;font-size:12px;font-weight:800;padding:10px 20px;border-radius:25px;text-transform:uppercase;letter-spacing:1px;box-shadow:0 4px 15px rgba(148,203,61,0.4);">
-                    🔔 New Lead
+                     New Lead
                   </div>
                 </td>
               </tr>
