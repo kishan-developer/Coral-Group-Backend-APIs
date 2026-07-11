@@ -24,9 +24,16 @@ const SITE_URL = process.env.SITE_URL || "http://localhost:3000";
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:2000";
 const LOGO_URL = "cid:coral-logo";
 
+// Brochure download URLs (Google Drive)
+const BROCHURE_URLS = {
+  "coral-skyline": "https://drive.google.com/uc?export=download&id=1IVD8q__Io08TimlRurNrIQgsMhhsEOCJ",
+  "coral-studio": "https://drive.google.com/uc?export=download&id=1gz_gOW2VrNpEwvyMUqUuXtmJyGCZB34R",
+  "coral-garden": "https://drive.google.com/uc?export=download&id=1IVD8q__Io08TimlRurNrIQgsMhhsEOCJ",
+};
+
 // User Email Template
 const getUserEmailTemplate = (variables) => {
-  const { NAME, BROCHURE_TITLE, EMAIL, PHONE, ADDRESS, PROJECT_TYPE, BUDGET_ROW, MESSAGE_ROW } = variables;
+  const { NAME, BROCHURE_TITLE, EMAIL, PHONE, ADDRESS, PROJECT_TYPE, BUDGET_ROW, MESSAGE_ROW, BROCHURE_DOWNLOAD_URL } = variables;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,7 +107,7 @@ const getUserEmailTemplate = (variables) => {
             <table cellpadding="0" cellspacing="0" style="margin:0 auto 36px;">
               <tr>
                 <td style="background:linear-gradient(135deg,#94cb3d,#7ab532);border-radius:10px;padding:16px 40px;text-align:center;box-shadow:0 4px 20px rgba(148,203,61,0.3);">
-                  <a href="https://coral-group.in/" style="color:#000000;font-size:16px;font-weight:700;text-decoration:none;display:block;">Visit Our Website →</a>
+                  <a href="${BROCHURE_DOWNLOAD_URL}" style="color:#000000;font-size:16px;font-weight:700;text-decoration:none;display:block;">Download Brochure →</a>
                 </td>
               </tr>
             </table>
@@ -134,7 +141,7 @@ const getUserEmailTemplate = (variables) => {
 
 // Admin Email Template
 const getAdminEmailTemplate = (variables) => {
-  const { NAME, EMAIL, PHONE, ADDRESS, PROJECT_TYPE, BUDGET_ROW, MESSAGE_ROW, BROCHURE_TITLE, BROCHURE_TYPE, TIMESTAMP } = variables;
+  const { NAME, EMAIL, PHONE, ADDRESS, PROJECT_TYPE, BUDGET_ROW, MESSAGE_ROW, BROCHURE_TITLE, BROCHURE_TYPE, TIMESTAMP, BROCHURE_DOWNLOAD_URL } = variables;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -242,6 +249,9 @@ const getAdminEmailTemplate = (variables) => {
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;">
               <tr>
                 <td align="center">
+                  <a href="${BROCHURE_DOWNLOAD_URL}" style="display:inline-block;background:#94cb3d;color:#000000;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;margin:0 4px;border:1px solid #94cb3d;">
+                    📄 Download Brochure
+                  </a>
                   <a href="mailto:${EMAIL}" style="display:inline-block;background:#2a2a2a;color:#94cb3d;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;margin:0 4px;border:1px solid #3a3a3a;">
                     📧 Reply via Email
                   </a>
@@ -312,6 +322,8 @@ exports.submitBrochureRequest = asyncHandler(async (req, res) => {
     },
   });
 
+  
+
   // Send emails in background (non-blocking - won't affect client response)
   if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
     console.warn("Email credentials not set (SMTP_USER / SMTP_PASSWORD). Skipping email send.");
@@ -319,6 +331,9 @@ exports.submitBrochureRequest = asyncHandler(async (req, res) => {
   }
 
   const transporter = createTransporter();
+
+  // Get brochure download URL based on brochureType
+  const brochureDownloadUrl = BROCHURE_URLS[brochureType] || BROCHURE_URLS["coral-skyline"];
 
   // Prepare template variables
   const budgetRow = budget ? `<tr><td style="color:#606060;font-size:13px;padding:12px 0;border-bottom:1px solid #2a2a2a;">Budget</td><td style="color:#94cb3d;font-size:14px;padding:12px 0;border-bottom:1px solid #2a2a2a;font-weight:600;">${budget}</td></tr>` : '';
@@ -332,7 +347,8 @@ exports.submitBrochureRequest = asyncHandler(async (req, res) => {
     ADDRESS: address,
     PROJECT_TYPE: projectType.toUpperCase(),
     BUDGET_ROW: budgetRow,
-    MESSAGE_ROW: messageRow
+    MESSAGE_ROW: messageRow,
+    BROCHURE_DOWNLOAD_URL: brochureDownloadUrl
   });
 
   const adminMailHtml = getAdminEmailTemplate({
@@ -345,7 +361,8 @@ exports.submitBrochureRequest = asyncHandler(async (req, res) => {
     MESSAGE_ROW: messageRow,
     BROCHURE_TITLE: brochureTitle,
     BROCHURE_TYPE: brochureType,
-    TIMESTAMP: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+    TIMESTAMP: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+    BROCHURE_DOWNLOAD_URL: brochureDownloadUrl
   });
 
   const userMailOptions = {
